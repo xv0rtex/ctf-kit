@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# dbg ./binario [args...]  ->  abre el binario en GDB (con GEF)
+if [ $# -eq 0 ]; then
+  echo "Uso: dbg ./binario [argumentos...]"
+  exit 1
+fi
+
+# Linux / Windows / Mac Intel: GDB normal
+if [ "${CTF_EMULATED:-0}" != "1" ]; then
+  exec gdb -q --args "$@"
+fi
+
+# Mac con chip Apple: el contenedor x86 va emulado y ptrace no funciona,
+# así que se lanza el binario con el stub GDB de QEMU y GDB se conecta en remoto.
+# Panel izquierdo = entrada/salida del programa, panel derecho = GDB.
+PORT="${DBG_PORT:-1234}"
+BIN="$(readlink -f "$1")"
+Q="qemu-x86_64 -g $PORT $(printf '%q ' "$@"); echo; echo '[programa terminado, Enter para cerrar]'; read _"
+G="sleep 0.5; gdb -q -ex 'file $BIN' -ex 'target remote 127.0.0.1:$PORT'"
+
+if [ -n "${TMUX:-}" ]; then
+  tmux split-window -h "$G"
+  bash -c "$Q"
+else
+  exec tmux new-session "$Q" \; split-window -h "$G"
+fi

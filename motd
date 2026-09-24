@@ -1,0 +1,12 @@
+
+  ==================== Entorno CTF ====================
+  Carpeta compartida : /ctf   (en tu ordenador: ~/ctf)
+  Pwn / reversing    : gdb (+GEF), dbg, pwntools, checksec, ROPgadget,
+                       one_gadget, seccomp-tools, patchelf, strace, ltrace
+  Cripto             : python (pycryptodome, gmpy2, sympy, z3), RsaCtfTool,
+                       xortool, owiener, factordb, john, hashcat, openssl
+  Varios             : binwalk, nc, socat, sqlmap, tmux, ipython
+  Burp desde aqui    : curl -x http://host.docker.internal:8080 ...
+  Depurar            : dbg ./binario
+  =====================================================
+

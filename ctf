@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Lanzador del entorno CTF
+#   ctf              -> entra al contenedor
+#   ctf <comando>    -> ejecuta un comando dentro (p.ej. ctf python3 solve.py)
+#   ctf root | stop | reset | help
+set -euo pipefail
+
+IMAGE="ctf-tools:latest"
+NAME="ctf"
+CTF_DIR="${CTF_DIR:-$HOME/ctf}"
+
+DOCKER="docker"
+docker info >/dev/null 2>&1 || DOCKER="sudo docker"
+
+case "$(uname -m)" in
+  arm64|aarch64) EMU=1 ;;   # Mac con chip Apple
+  *)             EMU=0 ;;
+esac
+
+# Si estás dentro de ~/ctf/algo, entras directamente en /ctf/algo
+WD="/ctf"
+case "$PWD/" in
+  "$CTF_DIR"/*) WD="/ctf${PWD#"$CTF_DIR"}" ;;
+esac
+
+ensure_running() {
+  mkdir -p "$CTF_DIR"
+  if ! $DOCKER container inspect "$NAME" >/dev/null 2>&1; then
+    $DOCKER run -d --name "$NAME" --hostname ctf --init \
+      --platform linux/amd64 \
+      --cap-add=SYS_PTRACE --security-opt seccomp=unconfined \
+      --add-host=host.docker.internal:host-gateway \
+      -e CTF_EMULATED="$EMU" \
+      -v "$CTF_DIR":/ctf -w /ctf \
+      "$IMAGE" sleep infinity >/dev/null
+  elif [ "$($DOCKER inspect -f '{{.State.Running}}' "$NAME")" != "true" ]; then
+    $DOCKER start "$NAME" >/dev/null
+  fi
+}
+
+case "${1:-shell}" in
+  shell) ensure_running; exec $DOCKER exec -it -w "$WD" "$NAME" bash ;;
+  root)  ensure_running; exec $DOCKER exec -it -u root -w "$WD" "$NAME" bash ;;
+  stop)  $DOCKER stop "$NAME" >/dev/null && echo "Contenedor parado" ;;
+  reset) $DOCKER rm -f "$NAME" >/dev/null 2>&1 || true
+         echo "Contenedor borrado (lo que haya en $CTF_DIR sigue ahí)" ;;
+  help|-h|--help)
+         sed -n '2,6p' "$0" | sed 's/^# \{0,1\}//' ;;
+  *)     ensure_running; exec $DOCKER exec -it -w "$WD" "$NAME" "$@" ;;
+esac
