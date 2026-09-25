@@ -1,26 +1,24 @@
 # Entorno para el CTF
 
-Con esto te dejas el ordenador listo para el CTF. Se instala:
+Con esto te dejas el Mac listo para el CTF. Se instala:
 
 - Burp Suite, para los retos web.
 - Docker, con un contenedor Linux que ya trae todo lo de pwn, reversing y cripto.
-- Una carpeta compartida entre tu ordenador y el contenedor, para pasar ficheros de uno a otro.
+- Una carpeta compartida entre el Mac y el contenedor, para pasar ficheros de uno a otro.
 - El comando `ctf`, para entrar al contenedor sin pelearte con Docker.
 
-La guía empieza por Mac. Si usas Windows, salta a [Windows](#windows); si usas Linux, a [Linux](#linux). A partir de [Usando el entorno](#usando-el-entorno) es igual para todos.
+Esta guía es para Mac (chip Apple: M1, M2, M3…), que es lo que usamos todos. Si alguien va con Windows o Linux, lo más rápido es que tire de la OVA que os pasamos; montar esto en otro sistema da más guerra de la que merece.
 
 ---
 
-## Mac
-
-Sirve tanto para Mac con chip Apple (M1, M2, M3…) como para los antiguos con Intel.
-
-Antes de empezar:
+## Antes de empezar
 
 - Necesitas unos 15 GB libres.
-- Tienes que ser administrador del Mac, porque el instalador pide tu contraseña. Si es un portátil de empresa o de la uni, puede que no te deje.
+- Tienes que ser administrador del Mac, porque el instalador pide tu contraseña.
 
-### Instalar
+---
+
+## Instalar
 
 Descomprime el zip, abre la Terminal y ejecuta:
 
@@ -34,105 +32,40 @@ Esto hace lo siguiente:
 
 - Instala Homebrew si no lo tienes.
 - Instala Docker Desktop y Burp Suite.
-- Construye el contenedor.
+- Construye el contenedor con todas las herramientas.
 - Crea la carpeta `~/ctf`.
 - Deja instalado el comando `ctf`.
 
-Durante la instalación:
+### Lo más importante: Docker no arranca solo
 
-- La primera vez se abre Docker Desktop y tienes que aceptar sus términos. El script se queda esperando hasta que arranca, no lo cierres.
-- Construir el contenedor tarda un rato: 5-10 minutos en un Mac Intel y 15-20 en uno con chip Apple. Es normal que se quede parado en algún paso.
-- Si la organización os ha pasado una imagen ya construida, es mucho más rápido:
+Instalar Docker Desktop no basta. Tienes que **abrir la aplicación Docker** (búscala en Launchpad o Spotlight), y la primera vez te va a pedir permisos: te sale una ventana pidiendo tu contraseña para instalar un componente del sistema. **Dale y acepta.** Hasta que no hagas eso y la ballena de la barra de arriba deje de moverse, Docker no funciona y no va nada.
 
-  ```bash
-  CTF_REMOTE_IMAGE=ghcr.io/USUARIO/ctf-tools:latest ./install.sh
-  ```
+El instalador espera a que Docker arranque, así que si se queda parado ahí, es que le falta que aceptes esos permisos en la ventana de Docker.
 
-### Comprobar que funciona
+### Cuánto tarda
+
+Construir el contenedor tarda 15-20 minutos, porque el Mac tiene que compilar cosas para x86 emulando. Es normal que se quede un buen rato parado en algún paso. No lo cierres.
+
+Si os hemos pasado la imagen ya construida, es cuestión de un par de minutos:
+
+```bash
+CTF_REMOTE_IMAGE=ghcr.io/USUARIO/ctf-tools:latest ./install.sh
+```
+
+---
+
+## Comprobar que funciona
 
 ```bash
 cp test-entorno.sh ~/ctf/
 ctf bash test-entorno.sh
 ```
 
-Tiene que acabar en `0 fallos`. Fíjate en que se lanza con `ctf bash` delante: si lo ejecutas como `./test-entorno.sh`, se ejecuta en el Mac y no en el contenedor, y todo falla.
-
-En un Mac con chip Apple la primera línea pondrá `Modo: emulado`. Es lo esperado; más abajo se explica qué significa.
-
-### Desinstalar
-
-```bash
-./uninstall.sh
-```
-
-Va preguntando antes de borrar cada cosa: el contenedor, el comando `ctf`, la carpeta `~/ctf`, Burp, Docker y Homebrew. Con `./uninstall.sh -y` no pregunta, salvo para la carpeta `~/ctf` y para Homebrew, que siempre preguntan porque puedes tener cosas tuyas ahí.
-
-Ojo con desinstalar Docker: se borran todos tus contenedores, no solo el del CTF.
+Tiene que acabar en `0 fallos`. Fíjate en el `ctf bash` de delante: si lo lanzas como `./test-entorno.sh`, se ejecuta en el Mac y no en el contenedor, y todo falla. La primera línea pondrá `Modo: emulado`, que es lo normal en estos Mac.
 
 ---
 
-## Windows
-
-Necesitas Windows 10 u 11, ser administrador y unos 15 GB libres. Docker en Windows funciona sobre WSL2; si no lo tienes activado, lo activa el instalador de Docker, pero puede pedirte reiniciar.
-
-### Instalar
-
-Abre PowerShell en la carpeta del kit y ejecuta:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\install.ps1
-```
-
-Instala Docker Desktop y Burp Suite con `winget`, construye el contenedor, crea `C:\Users\TU_USUARIO\ctf` y añade el comando `ctf`.
-
-- Si Docker te pide reiniciar, reinicia y vuelve a lanzar el script. Lo que ya esté instalado se lo salta.
-- Cuando acabe, cierra PowerShell y abre uno nuevo. Si no, el comando `ctf` no aparece.
-- Si te dice que no encuentra `winget`, instala "Instalador de aplicaciones" desde la Microsoft Store.
-
-Con imagen ya construida:
-
-```powershell
-$env:CTF_REMOTE_IMAGE="ghcr.io/USUARIO/ctf-tools:latest"
-powershell -ExecutionPolicy Bypass -File .\install.ps1
-```
-
-### Comprobar que funciona
-
-Copia `test-entorno.sh` a `C:\Users\TU_USUARIO\ctf` y ejecuta:
-
-```powershell
-ctf bash test-entorno.sh
-```
-
-Tiene que acabar en `0 fallos`.
-
-### Diferencias con Mac
-
-- La carpeta compartida es `C:\Users\TU_USUARIO\ctf`.
-- `gdb` funciona directamente, sin el lío del modo emulado de los Mac con chip Apple. `dbg` también vale.
-- Si lanzas `ctf` desde una subcarpeta, entras en `/ctf`, no en la subcarpeta. En Mac sí te lleva a la subcarpeta.
-- No hay desinstalador. Quita Docker Desktop y Burp Suite desde Configuración → Aplicaciones, y borra `C:\Users\TU_USUARIO\.ctf`.
-
----
-
-## Linux
-
-```bash
-chmod +x install.sh uninstall.sh ctf dbg test-entorno.sh
-./install.sh
-```
-
-Instala Docker Engine, Burp Suite (en `~/BurpSuiteCommunity`), el contenedor y el comando `ctf`.
-
-- Al acabar, cierra sesión y vuelve a entrar para poder usar Docker sin `sudo`. Mientras tanto `ctf` funciona igual, pero te pedirá contraseña.
-- Para comprobar que funciona y para desinstalar, es igual que en Mac.
-- Para que el contenedor pueda mandar tráfico a Burp, en Burp tienes que poner el proxy escuchando en todas las interfaces. Se explica en el apartado de Burp.
-
----
-
-## Usando el entorno
-
-### El comando ctf
+## El comando ctf
 
 ```bash
 ctf                    # entras al contenedor
@@ -144,19 +77,23 @@ ctf reset              # lo borras y se crea limpio la próxima vez
 
 Para salir del contenedor, `exit` o `Ctrl+D`. Puedes tener varias terminales con `ctf` abiertas a la vez; todas entran al mismo contenedor.
 
-Dentro eres el usuario `ctf`, que puede usar `sudo` sin contraseña. Sabes que estás dentro porque el prompt pone `ctf:/ctf$`.
+Dentro eres el usuario `ctf`, que puede usar `sudo` sin contraseña. Sabes que estás dentro porque el prompt pone `ctf:/ctf$`. Si lanzas `ctf` estando dentro de una subcarpeta de `~/ctf`, entras directamente en esa carpeta dentro del contenedor.
 
-### La carpeta compartida
+---
 
-`~/ctf` en tu ordenador y `/ctf` en el contenedor son la misma carpeta. Lo normal es:
+## La carpeta compartida
+
+`~/ctf` en el Mac y `/ctf` en el contenedor son la misma carpeta. Lo normal es:
 
 1. Descargar el reto con el navegador.
 2. Moverlo a `~/ctf/nombre-del-reto`.
-3. Abrirlo en Ghidra desde tu ordenador y ejecutarlo o explotarlo desde el contenedor.
+3. Abrirlo en Ghidra desde el Mac y ejecutarlo o explotarlo desde el contenedor.
 
 Trabaja siempre dentro de `/ctf`. Lo que guardes en otro sitio del contenedor, como `/home/ctf`, se pierde con `ctf reset` o si reinstalas.
 
-### Qué trae el contenedor
+---
+
+## Qué trae el contenedor
 
 Para pwn y reversing:
 
@@ -201,38 +138,38 @@ patchelf --set-interpreter ./ld-linux-x86-64.so.2 --set-rpath . ./reto
 
 ## Depurar con gdb
 
-Aquí está la única diferencia importante entre ordenadores.
+Aquí está lo único que se hace distinto en el Mac, así que léelo con calma.
 
-En Windows, Linux y Mac Intel, `gdb` funciona como siempre:
-
-```bash
-gdb ./reto
-```
-
-Dentro pones tus breakpoints y lanzas el programa con `run`.
-
-En Mac con chip Apple, `gdb` no puede ejecutar el programa. Los binarios de los retos son x86 y tu Mac es ARM, así que el contenedor va emulado, y con la emulación GDB pierde la forma de controlar el proceso. Puedes seguir usando `gdb` para mirar el binario sin ejecutarlo (`disassemble main`, `info functions`…), pero `run` no funciona.
-
-Para eso está `dbg`:
+Como el contenedor va emulado (los retos son x86 y el Mac es ARM), `gdb ./reto` seguido de `run` **no funciona**: bajo emulación GDB no puede controlar el proceso de la forma habitual. Sí puedes usar `gdb` para mirar el binario sin ejecutarlo (`disassemble main`, `info functions`, ver strings…), pero para depurarlo en marcha usa `dbg`:
 
 ```bash
 dbg ./reto
 dbg ./reto argumento1 argumento2
 ```
 
-En Windows, Linux y Mac Intel, `dbg` simplemente abre `gdb`. En Mac con chip Apple abre una pantalla partida en dos:
+`dbg` abre una pantalla partida en dos:
 
 - A la izquierda está el programa. Ahí le escribes la entrada y ves lo que imprime.
 - A la derecha está GDB, ya conectado y con el programa parado al principio.
 
-Como el programa ya está arrancado, en vez de `run` usas `c`:
+Como el programa ya está arrancado, en vez de `run` usas `c` para continuar. Y si el binario no tiene símbolos (lo normal en los retos), `b main` no vale: pon los breakpoints por dirección.
 
 ```
-gef➤ break main
+gef➤ b *0x401156
 gef➤ c
 ```
 
-La pantalla partida es tmux. Todo se hace pulsando `Ctrl+b`, soltando, y luego la tecla:
+### La línea roja de GEF es normal
+
+Al conectar, GEF suelta un error tipo `Remote I/O error: Invalid argument`. No pasa nada: es GEF intentando leer el mapa de memoria del proceso, que el modo emulado no ofrece. Puedes seguir depurando sin problema. Lo único que no funciona por eso son los comandos de GEF que necesitan ese mapa, como `vmmap` o `heap chunks`. Todo lo demás (breakpoints, `si`/`ni`, registros, ver memoria con `x/`) va bien.
+
+### Anti-debug con ptrace
+
+Si un reto lleva un anti-debug del tipo `ptrace(PTRACE_TRACEME)`, con `dbg` **se salta solo**, porque al depurar así el binario no ve ningún depurador enganchado por ptrace. Así que no te compliques: pruébalo directamente con `dbg`.
+
+### La pantalla partida es tmux
+
+Todo se hace pulsando `Ctrl+b`, soltando, y luego la tecla:
 
 - `Ctrl+b` y una flecha: cambias de lado.
 - `Ctrl+b` y `x`: cierras el lado en el que estás.
@@ -240,26 +177,25 @@ La pantalla partida es tmux. Todo se hace pulsando `Ctrl+b`, soltando, y luego l
 
 Si te sale `Address already in use`, es que tienes otro `dbg` abierto. Ciérralo, o usa otro puerto con `DBG_PORT=1235 dbg ./reto`.
 
-En Mac con chip Apple tampoco funcionan `strace` ni `ltrace`, por el mismo motivo. Para ver las syscalls usa:
+Para ver las syscalls (`strace`/`ltrace` no funcionan en modo emulado):
 
 ```bash
 qemu-x86_64 -strace ./reto
 ```
 
-Algunos comandos de GDB y GEF que vas a usar mucho:
+Comandos de GDB y GEF que vas a usar mucho:
 
 ```
-break main         breakpoint en main
 b *0x401156        breakpoint en una dirección
+c                  continuar
 ni / si            siguiente instrucción (si entra en los call)
 finish             sales de la función actual
 x/20gx $rsp        ves la pila
 x/s 0x402004       ves una cadena
-context            vista completa de GEF: registros, pila y código
-vmmap              mapa de memoria
+info registers
+context            vista de GEF: registros, pila y código
 pattern create 200 generas un patrón para calcular offsets
 pattern search $rsp buscas el offset donde se ha pisado
-heap chunks        ves el heap
 got                ves la GOT
 ```
 
@@ -267,7 +203,7 @@ got                ves la GOT
 
 ## Pwntools
 
-Una plantilla que funciona en cualquier ordenador, también en Mac con chip Apple:
+Plantilla lista para el modo emulado del Mac:
 
 ```python
 from pwn import *
@@ -280,11 +216,10 @@ def start():
     if args.REMOTE:
         return remote("reto.ctf", 1337)
     if args.GDB:
-        if os.environ.get("CTF_EMULATED") == "1":   # Mac con chip Apple
-            p = process(["qemu-x86_64", "-g", "1234", elf.path])
-            gdb.attach(("127.0.0.1", 1234), exe=elf.path, gdbscript="c")
-            return p
-        return gdb.debug(elf.path, gdbscript="c")
+        # en el Mac emulado gdb.debug() no vale, se usa qemu -g
+        p = process(["qemu-x86_64", "-g", "1234", elf.path])
+        gdb.attach(("127.0.0.1", 1234), exe=elf.path, gdbscript="c")
+        return p
     return process(elf.path)
 
 p = start()
@@ -374,16 +309,16 @@ john --show hashes.txt
 hashcat -m 0 -a 0 hashes.txt wordlist.txt     # -m 0 es MD5
 ```
 
-Ten en cuenta dos cosas:
+Dos avisos:
 
 - No viene ningún diccionario. Si necesitas rockyou, descárgalo en `~/ctf`.
-- En el contenedor hashcat solo usa CPU y va lento. Si te toca crackear algo serio, instálalo en tu ordenador para que use la gráfica.
+- En el contenedor hashcat solo usa CPU y va lento. Si te toca crackear algo serio, instálalo en el Mac para que use la gráfica.
 
 ---
 
 ## Burp Suite
 
-Burp se instala en tu ordenador, no en el contenedor. Ábrelo y pulsa "Temporary project", luego "Use Burp defaults" y "Start Burp".
+Burp se instala en el Mac, no en el contenedor. Ábrelo y pulsa "Temporary project", luego "Use Burp defaults" y "Start Burp".
 
 Lo más cómodo es usar el navegador que trae el propio Burp: pestaña Proxy → Intercept → "Open browser". Todo lo que hagas ahí pasa por Burp, también HTTPS, sin configurar nada.
 
@@ -412,32 +347,16 @@ r = requests.get("https://reto.ctf/", proxies={"http": proxy, "https": proxy}, v
 
 Con HTTPS usa `curl -k` o `verify=False`, porque el contenedor no se fía del certificado de Burp.
 
-En Linux, además, tienes que ir a Proxy → Proxy settings, editar el listener y poner "All interfaces". En Mac y Windows no hace falta.
-
 ---
 
 ## Ghidra
 
-Ghidra no va en el contenedor porque es una aplicación con ventanas. Se instala en tu ordenador y abres los binarios directamente desde `~/ctf`.
-
-En Mac:
+Ghidra no va en el contenedor porque es una aplicación con ventanas, y además en el Mac corre nativa, que va mucho mejor. Se instala aparte y abres los binarios directamente desde `~/ctf`:
 
 ```bash
 brew install --cask temurin@21
 brew install --cask ghidra
 ```
-
-En Windows:
-
-1. Instala Java con `winget install EclipseAdoptium.Temurin.21.JDK`.
-2. Descarga el zip de la última versión de <https://github.com/NationalSecurityAgency/ghidra/releases>.
-3. Descomprímelo y abre `ghidraRun.bat`.
-
-En Linux:
-
-1. Instala Java con `sudo apt install openjdk-21-jdk`.
-2. Descarga el mismo zip.
-3. Descomprímelo y ejecuta `./ghidraRun`.
 
 Para empezar a usarlo:
 
@@ -445,7 +364,7 @@ Para empezar a usarlo:
 2. File → Import File, y eliges el binario.
 3. Doble clic en el binario y aceptas cuando pregunte si quieres analizarlo.
 4. A la izquierda, en Symbol Tree → Functions, buscas `main`. A la derecha tienes el código decompilado.
-5. Con la `L` renombras variables y funciones, lo que ayuda muchísimo a entender el código.
+5. Con la `L` renombras variables y funciones, lo que ayuda mucho a entender el código.
 
 La forma de trabajar suele ser: entiendes el binario en Ghidra, lo ves en ejecución con `dbg` y escribes el exploit con pwntools.
 
@@ -458,45 +377,90 @@ sudo apt update && sudo apt install -y paquete
 pip install paquete
 ```
 
-Se pierde con `ctf reset` o al reinstalar. Si echas algo en falta de verdad, díselo a la organización para que lo metan en la imagen.
+Se pierde con `ctf reset` o al reinstalar. Si echas algo en falta de verdad, dínoslo y lo metemos en la imagen.
 
 ---
 
 ## Si algo falla
 
 **`Cannot connect to the Docker daemon`**
-Docker no está arrancado. Abre Docker Desktop y espera a que el icono de la ballena se quede quieto. En Linux, ejecuta `sudo systemctl start docker`.
+Docker no está arrancado. Abre la aplicación Docker y espera a que la ballena de la barra de arriba se quede quieta. Si es la primera vez, acepta los permisos que te pide.
+
+**El instalador se queda parado esperando a Docker**
+Le falta que aceptes los permisos en la ventana de Docker Desktop. Ábrela y acepta.
 
 **`ctf: command not found`**
-En Windows, abre una terminal nueva. En Mac o Linux, vuelve a lanzar `./install.sh`.
+Vuelve a lanzar `./install.sh`.
 
 **`"/motd": not found` al instalar**
-Te falta algún fichero. Descarga el zip entero y lanza el instalador desde dentro de la carpeta.
+Te falta algún fichero. Descomprime el zip entero y lanza el instalador desde dentro de la carpeta.
 
-**El test da un montón de fallos y pone `Modo: nativo` en un Mac**
+**El test da un montón de fallos y pone `Modo: nativo`**
 Lo has lanzado fuera del contenedor. Tiene que ser `ctf bash test-entorno.sh`.
 
 **`run` no funciona en gdb**
-Si tienes un Mac con chip Apple es normal. Usa `dbg`.
+Es normal en el Mac. Usa `dbg`.
+
+**En `dbg` sale una línea roja de GEF**
+Es cosmético, puedes seguir depurando. Lo único que no va es `vmmap` y `heap`.
 
 **`./reto: Permission denied`**
 Ejecuta `chmod +x reto`.
 
 **No llegan peticiones a Burp**
-Comprueba que Burp está abierto y escuchando en el 8080. En Linux, revisa lo de "All interfaces".
-
-**En Windows no se ejecuta el script**
-Lánzalo exactamente como pone arriba, con `-ExecutionPolicy Bypass`.
+Comprueba que Burp está abierto y escuchando en el 8080.
 
 **Todo va raro**
 Ejecuta `ctf reset` y vuelve a entrar. Lo que tengas en `~/ctf` no se toca.
 
 ---
 
-Algunos detalles:
+## Desinstalar
+
+```bash
+./uninstall.sh
+```
+
+Va preguntando antes de borrar cada cosa: el contenedor, el comando `ctf`, la carpeta `~/ctf`, Burp, Docker y Homebrew. Con `./uninstall.sh -y` no pregunta, salvo para `~/ctf` y Homebrew, que siempre preguntan.
+
+Ojo con desinstalar Docker: se borran todos tus contenedores, no solo el del CTF.
+
+---
+
+## Para la organización
+
+Qué hay en el kit:
+
+| Fichero | Para qué sirve |
+|---|---|
+| `install.sh`, `uninstall.sh` | Instalador y desinstalador |
+| `install.ps1`, `ctf.ps1` | Versión Windows, por si acaso (no la usamos) |
+| `ctf` | El comando `ctf` |
+| `Dockerfile` | La imagen con las herramientas |
+| `dbg`, `motd` | Van dentro de la imagen |
+| `test-entorno.sh` | El test |
+| `.gitattributes` | Evita que Git rompa los scripts con finales de línea CRLF |
+
+Para que la gente no tenga que construir la imagen (20 minutos en cada Mac), publícala una vez:
+
+```bash
+docker login ghcr.io
+docker build --platform linux/amd64 -t ghcr.io/USUARIO/ctf-tools:latest .
+docker push ghcr.io/USUARIO/ctf-tools:latest
+```
+
+Notas:
+
+- Para el login usas tu usuario de GitHub y un token con permiso `write:packages`.
+- Luego, en GitHub → Packages → ctf-tools → Package settings, cámbiala a pública.
+- Después, a los participantes les pasas el comando con `CTF_REMOTE_IMAGE`.
+
+Si hay que añadir herramientas: editas el `Dockerfile`, reconstruyes, subes la imagen y pides que relancen el instalador.
+
+Detalles por si alguien pregunta:
 
 - La imagen es Ubuntu 24.04 y siempre `linux/amd64`, igual que los servidores de retos.
 - Python va en un venv en `/opt/venv`.
 - El usuario `ctf` tiene UID 1000.
 - El contenedor arranca con `SYS_PTRACE` y sin seccomp para que GDB funcione.
-- En ordenadores ARM se pasa la variable `CTF_EMULATED=1`, y `dbg` la usa para cambiar al modo QEMU.
+- En los Mac (ARM) se pasa la variable `CTF_EMULATED=1`, y `dbg` la usa para cambiar al modo QEMU.

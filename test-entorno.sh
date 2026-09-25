@@ -3,6 +3,13 @@
 # Copia este fichero a ~/ctf y lanza desde fuera:   ctf bash test-entorno.sh
 # (o dentro del contenedor:                         bash /ctf/test-entorno.sh)
 
+# Tiene que ejecutarse DENTRO del contenedor
+if [ ! -f /etc/motd-ctf ]; then
+  echo "[x] Estás en tu ordenador, no en el contenedor."
+  echo "    Haz:  cp test-entorno.sh ~/ctf/ && ctf bash test-entorno.sh"
+  exit 1
+fi
+
 PASS=0; FAIL=0
 ok()   { printf '  \033[32m✔\033[0m %s\n' "$1"; PASS=$((PASS+1)); }
 ko()   { printf '  \033[31m✘\033[0m %s\n' "$1"; FAIL=$((FAIL+1)); }
